@@ -17,29 +17,37 @@
 my $n = 0.1; #0.1
 my $b = 0;
 #longeur 57
-my $dimension = 57;
-my @w = (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+my $dimension = 0;
+my @w;
 
 #my @w = (0,0);
 my ($FileName)=$ARGV[0]; # Tableau des paramètres
 open(F,$FileName) || die "Erreur d'ouverture du fichier $FileName\n";
 my $counter = 0;
 my @record;
+my $longer = 0;
 while (my $ligne = <F>){
   my @mail = split(' ',$ligne);
-  my $longer = scalar @mail;
+  $longer = scalar @mail;
   for(my $i = 0; $i < $longer; $i++){
     $record[$counter][$i] = @mail[$i];
   }
   $counter++;
 }
+$dimension = $longer - 1;
+for(my $i = 0; $i < $dimension; $i++){
+  @w[$i] = 0;
+}
+#print "dimension of w: $dimension\n";
+#print "number of line: $counter\n";
 
 my $cmpt = 0;
-while($cmpt <= 100){
+my $error = 10000;
+while($cmpt <= 550){
 #my $error = 10000;
 #while($error >= 500){
   my $t = 0;
-  my $error = 0; #if use error = 10000, have to delete 'my'
+  $error = 0; #if use error = 10000, have to delete 'my'
   while($t < $counter){
     my $ligne_chose = int(rand($counter));
 #  print "chose line: $ligne_chose\n";
@@ -54,7 +62,8 @@ while($cmpt <= 100){
 
     }
 #  print "produit scalaire: $produit\n";
-        if($record[$ligne_chose][0]*$produit <=0){
+        #? if +b or not?
+        if(($record[$ligne_chose][0]*$produit+$b) <=0){
 #     print "y: $record[$ligne_chose][0]\n";
         $b = $b + $n*$record[$ligne_chose][0];
 #     print "b: $b\n";
@@ -62,21 +71,26 @@ while($cmpt <= 100){
           $w[$j] = $w[$j] + $n*$record[$ligne_chose][0]*$record[$ligne_chose][$j+1];
         }
 #     print "w: $w[0], $w[1]\n";
-      $error++;
+        $error++;
     }
     $t++;
   }
 #  print "$error\n";
   $cmpt++;
 }
-
+print "error: $error\n";
 open(HP,">./hyperplan") || die "Erreur de creation de hyperplan\n";
-for(my $i = 0; $i < $dimension; $i++){
-  print HP "@w[$i] ";
-}
-  print HP "$b\n";
 
-  print "coount: $cmpt\n";
+print HP "$b "; #w0
+for(my $i = 0; $i < $dimension; $i++){
+  if($i != ($dimension - 1)){
+      print HP "@w[$i] ";
+    }
+  else{
+      print HP "@w[$i]\n";
+    }
+}
+  print "count: $cmpt\n";
 
 close(F);
 close(HP);
